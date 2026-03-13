@@ -50,6 +50,7 @@ class T200(nn.Module):
         
         thrusts = self.force_constants /4.4e-7 * 9.81 * torch.where(self.rpm>0, 4.7368e-07 * self.f(self.rpm) - 1.9275e-04 * self.rpm + 8.4452e-02, -3.8442e-07 * self.f(self.rpm) - 1.6186e-04 * self.rpm - 3.9139e-02)# rpm2force
         
-        moments = thrusts * -self.directions * 0        
+        # Calculate moments based on the physical ratio of moment to thrust
+        moments = thrusts * -self.directions * (self.moment_constants / self.force_constants)
 
         return thrusts, moments

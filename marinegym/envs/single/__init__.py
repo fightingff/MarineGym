@@ -22,5 +22,6 @@
 
 
 from .hover import Hover
+from .swim_to_target import SwimToTarget
 # from .track import Track
 # from .landing import Landing

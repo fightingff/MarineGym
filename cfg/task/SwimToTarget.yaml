@@ -1,0 +1,26 @@
+name: SwimToTarget
+
+defaults:
+  - /base/env_base@_here_
+  - /base/sim_base@_here_
+  - randomization@_here_
+  - disturbances@_here_
+
+env:
+  num_envs: 64
+  env_spacing: 10
+  max_episode_length: 500
+
+drone_model:
+  name: BlueROV
+  controller: LeePositionController
+
+force_sensor: false
+time_encoding: true
+
+# 奖励函数权重微调，鼓励快速到达并稳定
+reward_effort_weight: 0.1
+reward_action_smoothness_weight: 0.05
+reward_distance_scale: 1.0
+
+target_radius: 3.0 # 目标点随机生成的半径范围

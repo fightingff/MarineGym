@@ -24,3 +24,6 @@ reward_action_smoothness_weight: 0.05
 reward_distance_scale: 1.0
 
 target_radius: 3.0 # 目标点随机生成的半径范围
+
+environment:
+  env_path: /home/young/Downloads/OceanSim_assets/collected_MHL/mhl_scaled.usd 

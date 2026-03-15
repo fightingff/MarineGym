@@ -265,12 +265,12 @@ class ArticulationView(_ArticulationView):
         env_indices: Optional[torch.Tensor] = None,
     ) -> None:
         with disable_warnings(self._physics_sim_view):
-            indices = self._resolve_env_indices(env_indices)
             poses = self._physics_view.get_root_transforms()
+            indices = self._resolve_env_indices(env_indices).to(poses.device)
             if positions is not None:
-                poses[indices, :3] = positions.reshape(-1, 3)
+                poses[indices, :3] = positions.to(poses.device).reshape(-1, 3)
             if orientations is not None:
-                poses[indices, 3:] = orientations.reshape(-1, 4)[:, [1, 2, 3, 0]]
+                poses[indices, 3:] = orientations.to(poses.device).reshape(-1, 4)[:, [1, 2, 3, 0]]
             self._physics_view.set_root_transforms(poses, indices)
 
     def get_velocities(
@@ -472,12 +472,12 @@ class RigidPrimView(_RigidPrimView):
         env_indices: Optional[torch.Tensor] = None,
     ) -> None:
         with disable_warnings(self._physics_sim_view):
-            indices = self._resolve_env_indices(env_indices)
             poses = self._physics_view.get_transforms()
+            indices = self._resolve_env_indices(env_indices).to(poses.device)
             if positions is not None:
-                poses[indices, :3] = positions.reshape(-1, 3)
+                poses[indices, :3] = positions.to(poses.device).reshape(-1, 3)
             if orientations is not None:
-                poses[indices, 3:] = orientations.reshape(-1, 4)[:, [1, 2, 3, 0]]
+                poses[indices, 3:] = orientations.to(poses.device).reshape(-1, 4)[:, [1, 2, 3, 0]]
             self._physics_view.set_transforms(poses, indices)
 
     def get_velocities(

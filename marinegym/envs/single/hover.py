@@ -74,6 +74,7 @@ class Hover(IsaacEnv):
 
     def _design_scene(self):
         import marinegym.utils.kit as kit_utils
+        import omni
         import omni.isaac.core.utils.prims as prim_utils
         from marinegym.envs.utils.stage import add_reference_to_stage
 
@@ -128,7 +129,6 @@ class Hover(IsaacEnv):
         )
 
         # 尝试改变目标点的颜色以使其可见
-        # 注意：这取决于 USD 模型的材质命名，这里是一个通用的尝试
         from pxr import Gf
         omni.kit.commands.execute(
             "ChangeProperty",

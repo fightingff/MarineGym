@@ -43,6 +43,9 @@ def load_checkpoint(checkpoint_path, env_config, algo_config):
     
     return policy, env
 
+import time
+from torchrl.envs.utils import step_mdp
+
 def evaluate_model(env, policy, num_episodes, cfg):
     results = []
     env.eval()
@@ -52,21 +55,42 @@ def evaluate_model(env, policy, num_episodes, cfg):
     if not cfg.headless:
         env.enable_render(True)
 
+    # 从配置中获取可选的等待时间，默认为0.02秒，用于控制动画速度
+    sleep_time = cfg.get("sleep_time", 0.02)
+    max_steps = env.base_env.max_episode_length
+
     for i in tqdm(range(num_episodes), desc="Evaluating"):
         with set_exploration_type(ExplorationType.MODE):
-            traj = env.rollout(
-                max_steps=env.base_env.max_episode_length,
-                policy=policy,
-                auto_reset=True,
-                break_when_any_done=True # 任务完成或失败即停止
-            )
-        
-        # 提取统计信息 (获取每个 episode 的最后一步 stats)
-        if ("next", "stats") in traj.keys(True, True):
-            last_stats = traj["next", "stats"][-1]
-            # 转换为字典或简单对象以便后续处理
-            results.append({k: v.item() if v.numel() == 1 else v.cpu().numpy() 
-                          for k, v in last_stats.items()})
+            td = env.reset()
+            episode_stats_list = []
+            
+            for _ in range(max_steps):
+                # 1. 计算动作
+                td = policy(td)
+                # 2. 环境前进一步
+                td = env.step(td)
+                
+                # 3. 如果开启了界面，加入延时以减缓动画速度
+                if not cfg.headless:
+                    time.sleep(sleep_time)
+                
+                # 保存统计信息 (如果有)
+                if ("next", "stats") in td.keys(True, True):
+                    episode_stats_list.append(td["next", "stats"].clone())
+
+                # 如果所有环境都 done 了，就提前结束当前回合
+                if td["next", "done"].all():
+                    break
+                    
+                # 为下一步准备 td (将 next.observation 移到 observation 等)
+                td = step_mdp(td)
+            
+            # 记录这一个 episode 最后一步的统计数据
+            if episode_stats_list:
+                last_stats = episode_stats_list[-1]
+                # last_stats 通常有 num_envs 维度，我们取平均值或仅取第一个环境的指标
+                results.append({k: v.item() if v.numel() == 1 else v.cpu().numpy() 
+                              for k, v in last_stats.items()})
             
     return results
 

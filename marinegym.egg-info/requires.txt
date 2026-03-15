@@ -1,0 +1,11 @@
+hydra-core
+omegaconf
+wandb
+imageio
+plotly
+einops
+pandas
+moviepy
+av
+torchrl==0.4.0
+tensordict==0.4.0

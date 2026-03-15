@@ -75,6 +75,36 @@ class Hover(IsaacEnv):
     def _design_scene(self):
         import marinegym.utils.kit as kit_utils
         import omni.isaac.core.utils.prims as prim_utils
+        from marinegym.envs.utils.stage import add_reference_to_stage
+
+        # 尝试从配置加载海洋场景
+        env_cfg = self.cfg.task.get("environment", {})
+        env_path = env_cfg.get("env_path", None)
+        
+        if env_path:
+            # 加载外部 USD 场景
+            add_reference_to_stage(
+                usd_path=env_path,
+                prim_path="/World/OceanScene"
+            )
+        else:
+            # 创建基本海底和蓝色灯光作为备选
+            kit_utils.create_ground_plane(
+                "/World/defaultGroundPlane",
+                z_position=0.0,
+                static_friction=0.5,
+                dynamic_friction=0.5,
+                restitution=0.8,
+                color=(0.3, 0.25, 0.2) # 沙土色
+            )
+            prim_utils.create_prim(
+                "/World/UnderwaterLight",
+                "DomeLight",
+                attributes={
+                    "inputs:intensity": 1000.0,
+                    "inputs:color": (0.1, 0.2, 0.4) # 深蓝色调
+                }
+            )
 
         drone_model_cfg = self.cfg.task.drone_model
         self.drone, self.controller = UnderwaterVehicle.make(
@@ -87,6 +117,7 @@ class Hover(IsaacEnv):
             translation=(0.0, 0.0, 2.),
         )
 
+        # 设置目标点属性（不参与碰撞，无重力）
         kit_utils.set_nested_collision_properties(
             target_vis_prim.GetPath(),
             collision_enabled=False
@@ -94,6 +125,16 @@ class Hover(IsaacEnv):
         kit_utils.set_nested_rigid_body_properties(
             target_vis_prim.GetPath(),
             disable_gravity=True
+        )
+
+        # 尝试改变目标点的颜色以使其可见
+        # 注意：这取决于 USD 模型的材质命名，这里是一个通用的尝试
+        from pxr import Gf
+        omni.kit.commands.execute(
+            "ChangeProperty",
+            prop_path=f"/World/envs/env_0/target.primvars:displayColor",
+            value=[Gf.Vec3f(1.0, 0.0, 0.0)], # 红色
+            prev=None,
         )
 
         drone_prim = self.drone.spawn(translations=[(0.0, 0.0, 2.)])[0]

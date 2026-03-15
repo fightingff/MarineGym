@@ -17,6 +17,9 @@ eval_interval: -1
 save_interval: -1
 seed: 0
 
+checkpoint: null
+num_eval_episodes: 20
+
 viewer:
   resolution: [2460, 1440]
   eye: [8, 0., 6.]

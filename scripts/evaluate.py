@@ -72,12 +72,15 @@ def evaluate_model(env, policy, num_episodes, cfg):
 
 FILE_PATH = os.path.dirname(__file__)
 
-@hydra.main(config_path=FILE_PATH, config_name="train")
+@hydra.main(config_path=FILE_PATH, config_name="train", version_base=None)
 def main(cfg):
-    # 允许从命令行覆盖 checkpoint 路径，例如：python evaluate.py checkpoint=/path/to/model.pt
+    # 将 cfg 转换为可编辑字典，以支持在脚本中添加或修改键值
+    OmegaConf.set_struct(cfg, False)
+    
+    # 允许从命令行覆盖 checkpoint 路径
     if "checkpoint" not in cfg:
         print("\n[Error] Please provide a checkpoint path.")
-        print("Usage: python scripts/evaluate.py task=SwimToTarget checkpoint=/path/to/model.pt\n")
+        print("Usage: python scripts/evaluate.py task=SwimToTarget +checkpoint=/path/to/model.pt\n")
         return
 
     OmegaConf.register_new_resolver("eval", eval, replace=True)
